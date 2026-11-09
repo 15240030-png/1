@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fff8ed">
+  <title>今天吃什麼？</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #34251f;
+      --muted: #786a61;
+      --accent: #e76f51;
+      --accent-dark: #c94f35;
+      --paper: #fffdf9;
+      --line: #eadfd4;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      padding: 32px 18px;
+      display: grid;
+      place-items: center;
+      background: radial-gradient(circle at 15% 15%, #ffe6c8 0, transparent 30%),
+                  radial-gradient(circle at 85% 85%, #f9d9cf 0, transparent 28%), #fff8ed;
+      color: var(--ink);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .card {
+      width: min(100%, 560px);
+      padding: clamp(24px, 6vw, 44px);
+      border: 1px solid rgba(234, 223, 212, .9);
+      border-radius: 28px;
+      background: var(--paper);
+      box-shadow: 0 22px 65px rgba(100, 64, 42, .12);
+    }
+
+    .eyebrow {
+      margin: 0 0 10px;
+      color: var(--accent-dark);
+      font-size: .82rem;
+      font-weight: 800;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    h1 { margin: 0; font-size: clamp(2rem, 7vw, 3rem); line-height: 1.15; }
+    .intro { margin: 12px 0 28px; color: var(--muted); line-height: 1.7; }
+    label { display: block; margin-bottom: 9px; font-weight: 750; }
+
+    textarea {
+      display: block;
+      width: 100%;
+      min-height: 172px;
+      padding: 15px 16px;
+      resize: vertical;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #fff;
+      color: var(--ink);
+      font: inherit;
+      line-height: 1.8;
+      transition: border-color .2s, box-shadow .2s;
+    }
+
+    textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px #e76f5120; }
+    .hint { margin: 9px 0 20px; color: var(--muted); font-size: .9rem; }
+
+    button {
+      width: 100%;
+      min-height: 54px;
+      border: 0;
+      border-radius: 15px;
+      background: var(--accent);
+      color: white;
+      font: inherit;
+      font-size: 1.05rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform .15s, background .15s;
+    }
+
+    button:hover { background: var(--accent-dark); transform: translateY(-1px); }
+    button:active { transform: translateY(0); }
+    button:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+
+    .result {
+      min-height: 104px;
+      margin-top: 22px;
+      padding: 18px;
+      display: grid;
+      place-content: center;
+      text-align: center;
+      border: 1px dashed #e6c6b7;
+      border-radius: 18px;
+      background: #fff8f3;
+    }
+
+    .result-label { margin: 0 0 5px; color: var(--muted); font-size: .86rem; font-weight: 700; }
+    #resultText { margin: 0; color: var(--accent-dark); font-size: clamp(1.35rem, 5vw, 1.9rem); font-weight: 850; overflow-wrap: anywhere; }
+    #resultText.error { color: #a33b2c; font-size: 1rem; }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <p class="eyebrow">Meal picker</p>
+    <h1>今天吃什麼？</h1>
+    <p class="intro">把想吃的餐點列出來，剩下的交給我抽籤！</p>
+
+    <label for="options">你的候選清單</label>
+    <textarea id="options" aria-describedby="optionsHint">便當
+麵
+咖哩
+水餃</textarea>
+    <p class="hint" id="optionsHint">每行輸入一個選項；空白行會忽略，相同選項只保留一次。</p>
+
+    <button id="pickButton" type="button">幫我選</button>
+
+    <section class="result" aria-live="polite" aria-atomic="true" aria-label="抽籤結果">
+      <p class="result-label">抽籤結果</p>
+      <p id="resultText">準備好就按「幫我選」</p>
+    </section>
+  </main>
+
+  <script>
+    const optionsInput = document.querySelector("#options");
+    const resultText = document.querySelector("#resultText");
+    const pickButton = document.querySelector("#pickButton");
+
+    function pickMeal() {
+      // 去除每行前後空白、忽略空白行，並移除完全相同的重複選項。
+      const options = [...new Set(
+        optionsInput.value
+          .split(/\r?\n/)
+          .map(option => option.trim())
+          .filter(option => option.length > 0)
+      )];
+
+      if (options.length === 0) {
+        resultText.textContent = "請先輸入至少一個選項";
+        resultText.classList.add("error");
+        return;
+      }
+
+      resultText.classList.remove("error");
+      // 每個有效選項佔一個索引，以等機率抽出其中一個。
+      const chosen = options[Math.floor(Math.random() * options.length)];
+      resultText.textContent = chosen;
+    }
+
+    pickButton.addEventListener("click", pickMeal);
+  </script>
+</body>
+</html>
